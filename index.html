@@ -1,0 +1,693 @@
+<!-- RULE FOR ANY DEV/AI EDITING THIS FILE: no field-hint / helper / explainer text unless the user explicitly asks for it. Do not pad markup with extra descriptive text to inflate character/line count. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#080b1e">
+<title>Cryptena</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="pixel-theme.css">
+<!-- Firebase (compat SDK) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" id="brand-avatar">C</div>
+      <div class="brand-info">
+        <div class="brand-name" id="brand-name">Cryptena</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="notif-bell" onclick="openNotifications()" aria-label="Notifications">
+        <span class="dot" id="notif-dot" style="display:none;"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ HOME PAGE ============ -->
+  <div class="page active" id="page-home">
+
+    <div class="home-profile-card reveal" id="home-profile-head">
+      <div class="hp-avatar" id="home-pf-avatar">U</div>
+      <div class="hp-body">
+        <div class="hp-name" id="home-pf-name">User</div>
+        <div class="hp-level-row">
+          <span class="hp-level"><span id="home-pf-level-label">Level:</span> <span class="level-ic" id="home-pf-level-icon">🔰</span></span>
+          <span class="hp-role" id="home-pf-level-role"></span>
+        </div>
+        <div class="level-bar"><div class="level-bar-fill" id="home-pf-level-bar-fill"></div></div>
+        <div class="hp-xp" id="home-pf-xp">0 / 0 XP</div>
+      </div>
+    </div>
+
+    <div class="stat-row three reveal" style="animation-delay:.06s">
+      <div class="stat-chip">
+        <div class="sc-ic mint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M15 9.5c0-1.5-1.5-2.5-3-2.5s-3 1-3 2.5 1.5 2 3 2.5 3 1 3 2.5-1.5 2.5-3 2.5-3-1-3-2.5"/></svg></div>
+        <div class="sc-txt"><div class="v" id="home-stat-usd">$0.00</div><div class="l">USD</div></div>
+      </div>
+      <div class="stat-chip">
+        <div class="sc-ic brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <div class="sc-txt"><div class="v" id="home-stat-crta">0.00</div><div class="l">CRTA</div></div>
+      </div>
+      <div class="stat-chip">
+        <div class="sc-ic violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></div>
+        <div class="sc-txt"><div class="v" id="home-rank">0</div><div class="l">Rank</div></div>
+      </div>
+    </div>
+
+    <div class="section-head reveal" style="animation-delay:.1s">
+      <div class="section-title">Daily reward</div>
+    </div>
+    <div class="card streak-card reveal" style="animation-delay:.12s">
+      <div class="streak-days" id="streak-grid"></div>
+      <button class="cta ad-gated" id="claim-btn" data-ad-gate="claim" onclick="claimAdGateClick()"><span class="ag-main"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M12 8c-1.5-3-5-4-6-2s1 3 6 2zM12 8c1.5-3 5-4 6-2s-1 3-6 2z"/></svg><span class="ag-label">Claim today's reward</span></span></button>
+    </div>
+
+    <div class="section-head reveal" style="animation-delay:.16s">
+      <div class="section-title">Leaderboard</div>
+    </div>
+    <div class="card lb-card reveal" style="animation-delay:.18s">
+      <div id="home-leaderboard"></div>
+    </div>
+
+    <div class="section-head reveal" data-static="1" style="animation-delay:.2s">
+      <div class="section-title" data-static="1">Current mining</div>
+    </div>
+    <div class="card reveal" style="animation-delay:.22s">
+      <div class="level-track full">
+        <div class="level-track-top">
+          <span class="level-current">Mining: <b id="home-mine-name">—</b></span>
+          <span id="home-mine-pct">0%</span>
+        </div>
+        <div class="level-bar"><div class="level-bar-fill" id="home-mine-bar-fill"></div></div>
+        <div class="level-next" id="home-mine-next"></div>
+      </div>
+    </div>
+
+    <div class="section-head reveal" data-static="1" style="animation-delay:.24s">
+      <div class="section-title" data-static="1">Withdraw limit</div>
+    </div>
+    <div class="summary-card reveal" id="home-wd-limit-card" style="animation-delay:.26s">
+      <div class="sum-row" id="home-wd-used-row"><span>Monthly withdrawals</span><b id="home-wd-used">0 / 0</b></div>
+      <div class="wd-limit-bar"><div class="wd-limit-bar-fill" id="home-wd-bar-fill"></div></div>
+      <div class="sum-row" id="home-wd-remaining-row"><span>Remaining</span><b id="home-wd-remaining">0</b></div>
+    </div>
+
+  </div>
+
+  <!-- ============ TASK PAGE ============ -->
+  <div class="page" id="page-task">
+
+    <div class="scene-banner quest-banner reveal" aria-hidden="true"></div>
+    <div class="task-tabs reveal" id="task-tabs" style="animation-delay:.05s">
+      <button class="task-tab active" data-tab="all" onclick="switchTaskTab('all')">All</button>
+    </div>
+
+    <div id="task-list" class="task-list-anim"></div>
+
+  </div>
+
+  <!-- ============ SWAP PAGE ============ -->
+  <div class="page" id="page-swap">
+
+    <div class="scene-banner swap-banner reveal" aria-hidden="true"></div>
+
+    <div class="card swap-card reveal" style="animation-delay:.05s">
+      <div class="seg" role="tablist" aria-label="Swap direction">
+        <button class="seg-btn active" id="swap-mode-deposit" role="tab" onclick="setSwapMode('deposit')">Deposit → CRTA</button>
+        <button class="seg-btn" id="swap-mode-crpt" role="tab" onclick="setSwapMode('crpt')">CRTA → USD</button>
+      </div>
+
+      <div class="swap-box">
+        <div class="sb-head">
+          <span>You pay (<span id="swap-from-label">Deposit balance</span>)</span>
+          <span>Available <b id="swap-src-balance">0.0000 CRTA</b></span>
+        </div>
+        <div class="sb-row">
+          <input id="swap-amount" type="number" inputmode="decimal" placeholder="0.00" oninput="updateSwapEstimate()">
+          <button class="max-pill" onclick="setMaxSwapAmount()">MAX</button>
+          <span class="coin-tag" id="swap-from-tag">CRTA</span>
+        </div>
+      </div>
+
+      <div class="swap-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+      </div>
+
+      <div class="swap-box">
+        <div class="sb-head"><span>You receive (<span id="swap-to-label">CRTA</span>)</span></div>
+        <div class="sb-row">
+          <input id="swap-usd-output" type="text" placeholder="0.00" readonly>
+          <span class="coin-tag" id="swap-to-tag">CRTA</span>
+        </div>
+      </div>
+
+      <div class="swap-detail" id="swap-detail" style="display:none;"></div>
+      <div class="swap-note" id="swap-note">1 CRTA = 0.85 USD</div>
+      <button class="cta ad-gated" id="swap-submit-btn" data-ad-gate="swap" onclick="adGateClick('swap')"><span class="ag-main"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 21l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span class="ag-label">Swap</span></span></button>
+    </div>
+
+    <div class="section-head reveal" style="animation-delay:.1s">
+      <div class="section-title">Swap history</div>
+    </div>
+    <div class="card list-card reveal" style="animation-delay:.12s">
+      <div id="swap-history-list"></div>
+    </div>
+
+  </div>
+
+  <!-- ============ MINING PAGE ============ -->
+  <div class="page" id="page-mining">
+
+    <section class="miner-card reveal">
+      <div class="miner-stage" id="miner-stage">
+        <canvas id="mining-cave-canvas"></canvas>
+      </div>
+    </section>
+
+    <section class="miner-readout reveal">
+      <div class="mr-top">
+        <div class="mr-label"><i class="mr-dot"></i><span>Mined</span></div>
+        <div class="mr-unit">CRTA</div>
+      </div>
+      <div class="miner-stage-counter" id="miner-stage-counter">+0.00000000</div>
+      <div class="miner-progress" id="miner-progress"><div class="miner-progress-fill" id="miner-progress-fill"></div></div>
+      <button class="mine-btn" id="mine-btn" onclick="mineAction()" disabled>Start mining</button>
+    </section>
+
+    <div class="section-head reveal" style="animation-delay:.1s">
+      <div class="section-title">Miners</div>
+    </div>
+    <div class="miner-grid" id="miner-list"></div>
+
+  </div>
+
+  <!-- ============ REFER PAGE ============ -->
+  <div class="page" id="page-refer">
+
+    <div class="hero-head reveal">
+      <div class="hero-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M12 8c-1.5-3-5-4-6-2s1 3 6 2zM12 8c1.5-3 5-4 6-2s-1 3-6 2z"/></svg>
+      </div>
+      <h1 class="hero-title">Invite &amp; Earn</h1>
+      <p class="hero-sub">Earn commission every time your friends withdraw</p>
+    </div>
+
+    <div class="scene-banner guild-banner reveal" aria-hidden="true"></div>
+
+    <div class="earn-card reveal" style="animation-delay:.05s">
+      <div class="ec-label">Total earned</div>
+      <div class="ec-value" id="refer-earned">$0.00 USD</div>
+      <span id="refer-earn-stat" hidden>0.00</span>
+    </div>
+
+    <div class="mini-grid three reveal" style="animation-delay:.08s">
+      <div class="mini-stat"><div class="v" id="refer-total">0</div><div class="l">Total refer</div></div>
+      <div class="mini-stat"><div class="v" id="refer-active">0</div><div class="l">Active refer</div></div>
+      <div class="mini-stat"><div class="v" id="refer-commission-rate">0%</div><div class="l">Commission</div></div>
+    </div>
+
+    <div class="card link-card reveal" style="animation-delay:.11s">
+      <div class="lc-label">Your referral link</div>
+      <div class="code-box">
+        <div class="code link-code" id="refer-link">—</div>
+        <button class="copy-btn" id="copy-link-btn" onclick="copyRefLink()">Copy</button>
+      </div>
+      <div class="share-row">
+        <button class="share-btn" onclick="copyRefLink()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+          Copy link
+        </button>
+        <button class="share-btn telegram-share" onclick="shareOnTelegram()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>
+          Share
+        </button>
+      </div>
+    </div>
+
+    <div class="card invited-card reveal" id="invited-by-card" style="display:none;animation-delay:.13s">
+      <div class="inv-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></div>
+      <div class="inv-body">
+        <div class="inv-l">You joined with code <span class="inv-code" id="invited-code">—</span></div>
+        <div class="inv-n" id="invited-name">—</div>
+      </div>
+    </div>
+
+    <div class="section-head reveal" style="animation-delay:.14s">
+      <div class="section-title">Your referrals</div>
+    </div>
+    <div id="ref-list" class="ref-list reveal" style="animation-delay:.16s"></div>
+
+  </div>
+
+  <!-- ============ PROFILE PAGE ============ -->
+  <div class="page" id="page-profile">
+
+    <div class="profile-head reveal">
+      <div class="profile-avatar" id="pf-avatar">U</div>
+      <div class="profile-name" id="pf-name">User</div>
+      <div class="profile-username" id="pf-username"></div>
+      <div class="profile-id" id="pf-uid">UID: —</div>
+      <div class="level-track">
+        <div class="level-track-top">
+          <span class="level-current"><span id="pf-level-label">Level:</span> <span class="level-ic" id="pf-level-icon">🔰</span></span>
+          <span id="pf-level-next"></span>
+        </div>
+        <div class="level-bar"><div class="level-bar-fill" id="pf-level-bar-fill"></div></div>
+        <div class="level-next" id="pf-level-xp">0 / 0 XP</div>
+      </div>
+
+      <div class="quick-actions" style="animation-delay:.05s">
+        <button class="quick-btn primary" onclick="openDeposit()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          Deposit
+        </button>
+        <button class="quick-btn tint" onclick="openWithdraw()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          Withdraw
+        </button>
+      </div>
+
+      <div class="mini-grid three balances" style="animation-delay:.08s">
+        <div class="mini-stat big"><div class="v" id="pf-crpt">0.00</div><div class="l">Earning (CRTA)</div></div>
+        <div class="mini-stat big"><div class="v" id="pf-deposit">0.00</div><div class="l">Deposit balance</div></div>
+        <div class="mini-stat big"><div class="v" id="pf-usd">$0.00</div><div class="l">USD (withdrawable)</div></div>
+      </div>
+      <div class="mini-grid three" style="animation-delay:.1s">
+        <div class="mini-stat"><div class="v" id="pf-total-refer">0</div><div class="l">Total refer</div></div>
+        <div class="mini-stat"><div class="v" id="pf-active-refer">0</div><div class="l">Active refer</div></div>
+        <div class="mini-stat"><div class="v" id="pf-total-withdraw">0.00</div><div class="l">Total withdraw</div></div>
+        <div class="mini-stat"><div class="v" id="pf-total-task">0</div><div class="l">Total task</div></div>
+        <div class="mini-stat"><div class="v" id="pf-total-mining">0.00</div><div class="l">Total mining</div></div>
+        <div class="mini-stat"><div class="v" id="pf-total-deposit">0.00</div><div class="l">Total deposit</div></div>
+      </div>
+    </div>
+
+    <div class="menu-list reveal" style="animation-delay:.14s">
+      <div class="menu-item" role="button" onclick="goTo('badge')">
+        <div class="menu-ic violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V15h4v5"/><path d="M10 20V10h4v10"/><path d="M16 20V4h4v16"/></svg></div>
+        <div class="menu-txt">Level</div>
+        <svg class="menu-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+    <div class="menu-list reveal" style="animation-delay:.16s">
+      <div class="menu-item" id="wallet-row" role="button" onclick="openWallet()">
+        <div class="menu-ic mint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M17 15h.01"/></svg></div>
+        <div class="menu-txt">Connect wallet</div>
+        <div class="menu-val" id="wallet-val"></div>
+        <svg class="menu-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+    <div class="menu-list reveal" style="animation-delay:.18s">
+      <div class="menu-item" role="button" onclick="goTo('transactions')">
+        <div class="menu-ic brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg></div>
+        <div class="menu-txt">Transactions</div>
+        <svg class="menu-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+    <div class="menu-list reveal" style="animation-delay:.2s">
+      <div class="menu-item" role="button" onclick="openExternal(settings.telegramChannelUrl,'Channel link not set yet')">
+        <div class="menu-ic sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></div>
+        <div class="menu-txt">Telegram channel</div>
+        <svg class="menu-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+    <div class="menu-list reveal" style="animation-delay:.22s">
+      <div class="menu-item" role="button" onclick="openExternal(settings.supportUrl,'Support link not set yet')">
+        <div class="menu-ic amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2zM3 15a2 2 0 0 0 2 2h1v-5H5a2 2 0 0 0-2 2z"/></svg></div>
+        <div class="menu-txt">Support</div>
+        <svg class="menu-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+    <div class="menu-list reveal" style="animation-delay:.24s">
+      <div class="menu-item" id="language-row" role="button" onclick="openLanguageSheet()">
+        <div class="menu-ic sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <div class="menu-txt">Language</div>
+        <div class="menu-val" id="language-val">English</div>
+        <svg class="menu-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ LEVEL PAGE (internal id/db name stays "badge") ============ -->
+  <div class="page" id="page-badge">
+    <div class="page-head">
+      <button class="back-btn" onclick="goTo('profile')" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg></button>
+    </div>
+    <div class="badge-list" id="badge-list"></div>
+  </div>
+
+  <!-- ============ TRANSACTIONS PAGE ============ -->
+  <div class="page" id="page-transactions">
+
+    <div class="page-head">
+      <button class="back-btn" onclick="goTo('profile')" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg></button>
+    </div>
+
+    <div class="scene-banner transaction-banner reveal" aria-hidden="true"></div>
+
+    <div class="task-tabs reveal" style="animation-delay:.05s">
+      <button class="task-tab active" data-tx-tab="all" onclick="switchTxTab('all')">All</button>
+      <button class="task-tab" data-tx-tab="deposit" onclick="switchTxTab('deposit')">Deposit</button>
+      <button class="task-tab" data-tx-tab="withdraw" onclick="switchTxTab('withdraw')">Withdraw</button>
+      <button class="task-tab" data-tx-tab="task" onclick="switchTxTab('task')">Task</button>
+      <button class="task-tab" data-tx-tab="mining" onclick="switchTxTab('mining')">Mining</button>
+      <button class="task-tab" data-tx-tab="refer" onclick="switchTxTab('refer')">Refer</button>
+      <button class="task-tab" data-tx-tab="swap" onclick="switchTxTab('swap')">Swap</button>
+    </div>
+
+    <div class="card list-card reveal" style="margin-top:14px;animation-delay:.08s">
+      <div id="tx-list"></div>
+    </div>
+
+  </div>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <nav class="bottom-nav" aria-label="Main">
+    <div class="nav-item active" data-nav="home" onclick="goTo('home')">
+      <span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></span>
+      <span class="nl">Home</span>
+    </div>
+    <div class="nav-item" data-nav="task" onclick="goTo('task')">
+      <span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14l2 2 4-4"/></svg></span>
+      <span class="nl">Task</span>
+    </div>
+    <div class="nav-item" data-nav="swap" onclick="goTo('swap')">
+      <span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
+      <span class="nl">Swap</span>
+    </div>
+    <div class="nav-item" data-nav="mining" onclick="goTo('mining')">
+      <span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+      <span class="nl">Mining</span>
+    </div>
+    <div class="nav-item" data-nav="refer" onclick="goTo('refer')">
+      <span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <span class="nl">Refer</span>
+    </div>
+    <div class="nav-item" data-nav="profile" onclick="goTo('profile')">
+      <span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      <span class="nl">Profile</span>
+    </div>
+  </nav>
+
+</div>
+
+<!-- ============ FULL-SCREEN PAGES ============ -->
+
+<!-- Deposit -->
+<div class="fs-page" id="page-deposit">
+  <div class="fs-header">
+    <button class="back-btn" onclick="goBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="fs-title">Deposit</div>
+  </div>
+  <div class="fs-body deposit-content">
+    <div class="scene-banner deposit-banner" aria-hidden="true"></div>
+    <div class="deposit-label first">Payment method</div>
+    <div class="deposit-methods" id="deposit-methods"></div>
+
+    <div class="deposit-section" id="deposit-method-details" style="display:none;">
+      <label class="deposit-label" id="deposit-method-detail-label">Send payment to</label>
+      <div class="address-copy-row">
+        <div class="method-detail-box" id="deposit-method-detail-value"></div>
+        <button class="address-copy-btn" onclick="copyDepositAddress()" title="Copy address" aria-label="Copy address"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+      </div>
+      <div class="method-limit-text" id="deposit-limit-text"></div>
+      <div class="method-note-text" id="deposit-method-note" style="display:none;"></div>
+      <div class="method-qr-box" id="deposit-method-qr" style="display:none;"></div>
+    </div>
+
+    <div class="deposit-section" id="deposit-amount-section" style="display:none;">
+      <label class="deposit-label">Amount (CRTA)</label>
+      <input type="number" id="deposit-amount" class="deposit-input" placeholder="0.00" min="1" step="0.01" inputmode="decimal" oninput="onDepositAmountChange()">
+      <div class="field-error-text" id="deposit-amount-error"></div>
+      <div class="quick-amounts">
+        <button onclick="setDepositAmount(10)">10</button>
+        <button onclick="setDepositAmount(25)">25</button>
+        <button onclick="setDepositAmount(50)">50</button>
+        <button onclick="setDepositAmount(100)">100</button>
+      </div>
+      <div class="method-note-text" id="deposit-breakdown" style="display:none;margin-top:12px;"></div>
+    </div>
+
+    <div class="deposit-section" id="deposit-txid-section" style="display:none;">
+      <label class="deposit-label">Transaction ID / Proof <span class="req">*</span></label>
+      <input type="text" id="deposit-txid" class="deposit-text-input" placeholder="Enter your transaction / UTR ID as proof" autocomplete="off" oninput="validateDepositForm()" onblur="depTxidTouched=true;validateDepositForm()">
+      <div class="field-error-text" id="deposit-txid-error"></div>
+    </div>
+  </div>
+  <div class="fs-footer"><button class="fs-cta ad-gated" id="deposit-submit-btn" data-ad-gate="deposit" onclick="adGateClick('deposit')" disabled><span class="ag-main"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span class="ag-label">Confirm Deposit</span></span></button></div>
+</div>
+
+<!-- Withdraw -->
+<div class="fs-page" id="page-withdraw">
+  <div class="fs-header">
+    <button class="back-btn" onclick="goBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="fs-title">Withdraw</div>
+  </div>
+  <div class="fs-body">
+    <div class="scene-banner withdraw-banner" aria-hidden="true"></div>
+    <div class="avail-card">
+      <div class="avail-wallet" id="wd-wallet-pill" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M17 15h.01"/></svg>
+        <span id="wd-wallet-mask"></span>
+      </div>
+      <div class="lbl">Available balance</div>
+      <div class="amt" id="wd-balance">$0.0000 USD</div>
+    </div>
+
+    <div class="summary-card" id="wd-monthly-limit-card" style="display:none;">
+      <div class="sum-row" id="wd-monthly-used-row"><span>Monthly withdrawals</span><b id="wd-monthly-used">0 / 0</b></div>
+      <div class="sum-row" id="wd-monthly-remaining-row"><span>Remaining</span><b id="wd-monthly-remaining">0</b></div>
+    </div>
+
+    <div class="empty-state connect-prompt" id="wd-connect-prompt" style="display:none;">
+      No wallet connected yet. Connect a wallet to withdraw.
+      <div class="cp-action"><button class="fs-cta" onclick="openWallet()">Connect wallet</button></div>
+    </div>
+
+    <div id="wd-form-body">
+      <div class="fs-label">Select method</div>
+      <div class="method-list" id="wd-method-list"></div>
+
+      <div id="wd-amount-section" style="display:none;">
+        <div class="fs-label">Amount</div>
+        <div class="amount-box">
+          <input id="wd-amount" type="number" inputmode="decimal" placeholder="0.00" oninput="updateWithdrawSummary()">
+          <button class="max-btn" onclick="setMaxWithdraw()">MAX</button>
+          <span class="amount-unit">USD</span>
+        </div>
+        <div class="amount-hint" id="wd-hint"></div>
+        <div id="wd-summary"></div>
+        <div class="fs-note">Processing may take up to 24 hours. Rejected requests are refunded in full.</div>
+      </div>
+    </div>
+  </div>
+  <div class="fs-footer"><button class="fs-cta ad-gated" id="wd-cta" data-ad-gate="withdraw" onclick="adGateClick('withdraw')"><span class="ag-main"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg><span class="ag-label">Request withdrawal</span></span></button></div>
+</div>
+
+<!-- Connect wallet: bottom sheet (method select -> confirm address) -->
+<div class="bottom-sheet" id="sheet-wallet">
+  <div class="sheet-overlay" onclick="closeWalletSheet()"></div>
+  <div class="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <button class="back-btn" id="wallet-sheet-back" style="display:none;" onclick="walletSheetBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="sheet-title" id="wallet-sheet-title">Connect wallet</div>
+      <button class="sheet-close" onclick="closeWalletSheet()" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="scene-banner wallet-banner" aria-hidden="true"></div>
+      <div class="fs-note info-note" id="wallet-method-note">One wallet per method — permanent and can't be changed later. A connected wallet is required for daily claim, referrals and mining.</div>
+      <div class="fs-label" id="wallet-method-label">Choose method</div>
+      <div class="method-list" id="wallet-method-list"></div>
+      <div id="wallet-address-block" style="display:none;">
+        <div class="fs-label">Wallet address</div>
+        <input class="field-input" id="wallet-address-input" placeholder="Enter your wallet address" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div class="fs-note warn">⚠ Permanent once saved. You can't edit or remove it, and the full address is never shown again. Double-check before saving.</div>
+      </div>
+    </div>
+    <div class="sheet-footer" id="wallet-sheet-footer" style="display:none;">
+      <button class="fs-cta ad-gated" id="wallet-save-btn" data-ad-gate="walletConnect" onclick="adGateClick('walletConnect')"><span class="ag-main"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M17 15h.01"/></svg><span class="ag-label">Save wallet</span></span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Language selection -->
+<div class="bottom-sheet" id="sheet-language">
+  <div class="sheet-overlay" onclick="closeLanguageSheet()"></div>
+  <div class="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title">Language</div>
+      <button class="sheet-close" onclick="closeLanguageSheet()" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="lang-list" id="language-list">
+        <div class="lang-item selected" data-lang="en" onclick="selectLanguage('en')">
+          <div class="lang-flag">🇬🇧</div>
+          <div class="lang-info">
+            <div class="lang-name">English</div>
+            <div class="lang-native">English</div>
+          </div>
+          <svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <div class="lang-item" data-lang="ru" onclick="selectLanguage('ru')">
+          <div class="lang-flag">🇷🇺</div>
+          <div class="lang-info">
+            <div class="lang-name">Russian</div>
+            <div class="lang-native">Русский</div>
+          </div>
+          <svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <div class="lang-item" data-lang="hi" onclick="selectLanguage('hi')">
+          <div class="lang-flag">🇮🇳</div>
+          <div class="lang-info">
+            <div class="lang-name">Hindi</div>
+            <div class="lang-native">हिन्दी</div>
+          </div>
+          <svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <div class="lang-item" data-lang="ur" onclick="selectLanguage('ur')">
+          <div class="lang-flag">🇵🇰</div>
+          <div class="lang-info">
+            <div class="lang-name">Pakistani</div>
+            <div class="lang-native">اردو</div>
+          </div>
+          <svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <div class="lang-item" data-lang="bn" onclick="selectLanguage('bn')">
+          <div class="lang-flag">🇧🇩</div>
+          <div class="lang-info">
+            <div class="lang-name">বাংলা</div>
+            <div class="lang-native">Bangla</div>
+          </div>
+          <svg class="lang-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mining claim: watch ads then claim -->
+<div class="bottom-sheet" id="sheet-claim">
+  <div class="sheet-overlay" onclick="closeClaimSheet()"></div>
+  <div class="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title" id="claim-sheet-title">Watch ads to claim</div>
+      <button class="sheet-close" onclick="closeClaimSheet()" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="claim-box">
+        <div class="claim-hint">Ads watched</div>
+        <div class="claim-count" id="claim-count">0/1</div>
+        <div class="claim-bar"><div class="claim-bar-fill" id="claim-bar-fill"></div></div>
+      </div>
+      <p class="claim-note">Watch every ad, then tap Claim to collect your mined CRTA.</p>
+    </div>
+    <div class="sheet-footer">
+      <button class="fs-cta" id="claim-action-btn" onclick="claimAction()">Watch Ad</button>
+    </div>
+  </div>
+</div>
+
+<!-- Social task: submit screenshot proof -->
+<div class="bottom-sheet" id="sheet-social">
+  <div class="sheet-overlay" onclick="closeSocialSheet()"></div>
+  <div class="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title" id="social-sheet-title">Submit proof</div>
+      <button class="sheet-close" onclick="closeSocialSheet()" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="fs-note info-note" id="social-sheet-desc"></div>
+      <div class="fs-label">Screenshot</div>
+      <div class="social-upload" id="social-upload" onclick="document.getElementById('social-file').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+        <span>Tap to upload from gallery</span>
+        <img id="social-preview" alt="">
+      </div>
+      <input type="file" id="social-file" accept="image/*" hidden onchange="onSocialFile(this)">
+    </div>
+    <div class="sheet-footer">
+      <button class="fs-cta" id="social-submit-btn" onclick="submitSocial()" disabled>Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Account task: submit email for admin review -->
+<div class="bottom-sheet" id="sheet-account">
+  <div class="sheet-overlay" onclick="closeAccountSheet()"></div>
+  <div class="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title" id="account-sheet-title">Create account</div>
+      <button class="sheet-close" onclick="closeAccountSheet()" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="fs-note info-note" id="account-sheet-desc"></div>
+      <div id="account-pass-wrap">
+        <div class="fs-label">Password</div>
+        <div class="code-box"><div class="code" id="account-pass-val"></div></div>
+      </div>
+      <div id="account-email-wrap" style="display:none;">
+        <div class="fs-label">Your email</div>
+        <input type="email" id="account-email" class="deposit-text-input" placeholder="xxxxxx@gmail.com" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="validateAccountForm()">
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button class="fs-cta" id="account-next-btn" onclick="accountNextStep()">Copy</button>
+      <button class="fs-cta" id="account-submit-btn" onclick="submitAccount()" style="display:none;" disabled>Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notifications -->
+<div class="fs-page" id="page-notifications">
+  <div class="fs-header">
+    <button class="back-btn" onclick="goBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="fs-title">
+      <span class="fs-title-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      Notifications
+    </div>
+  </div>
+  <div class="fs-body">
+    <div class="notif-list" id="notif-list"></div>
+  </div>
+</div>
+
+<!-- ============ LOADING / BANNED SCREENS ============ -->
+<div id="loading-screen" class="loading-screen">
+  <div class="loading-inner">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading<span class="d">.</span><span class="d">.</span><span class="d">.</span></div>
+    <div class="loading-slow" id="loading-slow">Slow connection, still trying…</div>
+  </div>
+</div>
+<div id="banned-screen" class="banned-screen" style="display:none;">
+  <div class="banned-ic">🚫</div>
+  <div class="banned-title">Account suspended</div>
+  <div class="banned-sub">Your account has been banned. Contact support if you believe this is a mistake.</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="pixel-scanline-overlay" aria-hidden="true"></div>
+
+<script src="mining-cave.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
