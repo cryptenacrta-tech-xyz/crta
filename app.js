@@ -721,7 +721,7 @@ async function boot(){
   // bot saved a referral click while the app is already open -> apply it right away (only if still un-referred)
   if(!IS_GUEST) db.ref('pendingReferrals/'+uid).on('value', s=>{ if(s.exists() && me && !me.referredBy) applyLateReferral(); });
   db.ref('miners').on('value', s=>{ minersCache = s.val()||{}; renderMinersList(); if(me) renderMiningStatic(); });
-  db.ref('users').orderByChild('totalEarned').limitToLast(50).on('value', s=>{
+  db.ref('users').orderByChild('crpt').limitToLast(50).on('value', s=>{
     const arr = [];
     s.forEach(c=>{ arr.push(Object.assign({uid:c.key}, c.val())); });
     arr.reverse();
@@ -1234,7 +1234,7 @@ function renderLeaderboard(){
         <div class="podium-avatar">${avatarInner(u.photoUrl, initials(u))}</div>
         <div class="podium-name">${nameWithBadgeHtml(u)}</div>
         <div class="podium-sub">${esc(badgeLabel(u))}</div>
-        <div class="podium-amt">${(u.totalEarned||0).toFixed(2)}</div>
+        <div class="podium-amt">${(u.crpt||0).toFixed(2)}</div>
         <div class="podium-base">#${rank}</div>
       </div>`;
     }).join('')}
@@ -1244,7 +1244,7 @@ function renderLeaderboard(){
       <div class="lb-rank">#${i+4}</div>
       <div class="lb-avatar">${avatarInner(u.photoUrl, initials(u))}</div>
       <div class="lb-info"><div class="lb-name">${nameWithBadgeHtml(u)}</div><div class="lb-sub">${esc(badgeLabel(u))}</div></div>
-      <div class="lb-amt">${(u.totalEarned||0).toFixed(2)}</div>
+      <div class="lb-amt">${(u.crpt||0).toFixed(2)}</div>
     </div>`).join('')}</div>`;
   box.innerHTML = podiumHtml + restHtml;
 }
