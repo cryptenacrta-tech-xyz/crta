@@ -641,7 +641,7 @@ async function boot(){
       lastClaimDate: '',
       miner: {id:'', active:false, startedAt:0, cooldownUntil:0},
       ownedMiners: {},
-      totalMining: 0, totalTask: 0, totalWithdraw: 0, totalDeposit: 0, xp: 0,
+      totalMining: 0, totalEarned: 0, totalTask: 0, totalWithdraw: 0, totalDeposit: 0, xp: 0,
       todayDeposit: 0, todayDepositDate: '', todayReferrals: 0, todayReferralsDate: '',
       minedToday: 0, minedTodayDate: ''
     };
@@ -721,7 +721,7 @@ async function boot(){
   // bot saved a referral click while the app is already open -> apply it right away (only if still un-referred)
   if(!IS_GUEST) db.ref('pendingReferrals/'+uid).on('value', s=>{ if(s.exists() && me && !me.referredBy) applyLateReferral(); });
   db.ref('miners').on('value', s=>{ minersCache = s.val()||{}; renderMinersList(); if(me) renderMiningStatic(); });
-  db.ref('users').orderByChild('totalMining').limitToLast(50).on('value', s=>{
+  db.ref('users').orderByChild('totalEarned').limitToLast(50).on('value', s=>{
     const arr = [];
     s.forEach(c=>{ arr.push(Object.assign({uid:c.key}, c.val())); });
     arr.reverse();
@@ -1201,6 +1201,7 @@ function claimDaily(){
   const reward = DAILY_REWARDS[day-1];
   db.ref('users/'+uid).update({
     crpt: SERVER_INC(reward),         // reward balance
+    totalEarned: SERVER_INC(reward),  // lifetime earning (mining+task+daily) — leaderboard rank
     claimedToday: true,
     lastClaimDate: dayStr(0),
     streak: (me.streak||0)+1
@@ -1233,7 +1234,7 @@ function renderLeaderboard(){
         <div class="podium-avatar">${avatarInner(u.photoUrl, initials(u))}</div>
         <div class="podium-name">${nameWithBadgeHtml(u)}</div>
         <div class="podium-sub">${esc(badgeLabel(u))}</div>
-        <div class="podium-amt">${(u.totalMining||0).toFixed(2)}</div>
+        <div class="podium-amt">${(u.totalEarned||0).toFixed(2)}</div>
         <div class="podium-base">#${rank}</div>
       </div>`;
     }).join('')}
@@ -1243,10 +1244,74 @@ function renderLeaderboard(){
       <div class="lb-rank">#${i+4}</div>
       <div class="lb-avatar">${avatarInner(u.photoUrl, initials(u))}</div>
       <div class="lb-info"><div class="lb-name">${nameWithBadgeHtml(u)}</div><div class="lb-sub">${esc(badgeLabel(u))}</div></div>
-      <div class="lb-amt">${(u.totalMining||0).toFixed(2)}</div>
+      <div class="lb-amt">${(u.totalEarned||0).toFixed(2)}</div>
     </div>`).join('')}</div>`;
   box.innerHTML = podiumHtml + restHtml;
 }
+
+/* ---------------- ONE-TIME MIGRATION: backfill totalEarned from txlog ----------------
+   Reconstructs totalEarned for EXISTING users from their txlog history, so the
+   leaderboard's historical rank reflects real lifetime earning (task+mining+daily),
+   not just what they earn from today onward.
+
+   totalEarned = sum of all POSITIVE 'task' and 'mining' txlog entries.
+     - 'task'   -> daily check-in reward + task rewards (always positive)
+     - 'mining' -> includes BOTH miner claims (positive) AND buying a miner
+                   (negative, e.g. "-50.0000 CRTA") -> negatives are skipped.
+
+   Safe to re-run: always recomputes from txlog (source of truth) and OVERWRITES
+   totalEarned with the fresh sum, so running it twice gives the same result.
+
+   HOW TO RUN (once, as an admin, during low traffic):
+     1. Open the app in a browser where you're logged in with an account that
+        has read access to all of `users` (the leaderboard already needs this).
+     2. Open the browser console (F12) on this app's page.
+     3. Dry run first (prints results, writes nothing):
+          runTotalEarnedMigration(true)
+     4. If the numbers look right, run for real:
+          runTotalEarnedMigration(false)
+*/
+function _parseTxAmt(amtStr){
+  if(!amtStr || typeof amtStr !== 'string') return null;
+  const m = amtStr.trim().match(/^([+-])(\d+(?:\.\d+)?)/);
+  if(!m) return null;
+  return { sign: m[1], value: parseFloat(m[2]) };
+}
+function _computeTotalEarnedFromTxlog(txlog){
+  if(!txlog) return 0;
+  let total = 0;
+  for(const key of Object.keys(txlog)){
+    const tx = txlog[key];
+    if(!tx || (tx.type !== 'task' && tx.type !== 'mining')) continue;
+    const parsed = _parseTxAmt(tx.amt);
+    if(!parsed || parsed.sign !== '+') continue; // skip negatives (e.g. "Bought miner")
+    total += parsed.value;
+  }
+  return total;
+}
+async function runTotalEarnedMigration(dryRun){
+  dryRun = dryRun !== false; // default true (safe) unless explicitly called with false
+  console.log(dryRun ? '[migration] DRY RUN — no writes will be made' : '[migration] LIVE RUN — writing to database');
+  const snap = await db.ref('users').once('value');
+  const users = snap.val() || {};
+  const uids = Object.keys(users);
+  console.log(`[migration] Found ${uids.length} users.`);
+  const updates = {};
+  let updated = 0, skipped = 0;
+  for(const id of uids){
+    const u = users[id];
+    if(!u.txlog){ skipped++; continue; }
+    const totalEarned = Number(_computeTotalEarnedFromTxlog(u.txlog).toFixed(4));
+    console.log(`  ${id} (${u.username||u.firstName||'unnamed'}) -> totalEarned = ${totalEarned}`);
+    updates['users/'+id+'/totalEarned'] = totalEarned;
+    updated++;
+  }
+  console.log(`[migration] ${updated} users to update, ${skipped} skipped (no txlog).`);
+  if(dryRun){ console.log('[migration] Dry run complete. Call runTotalEarnedMigration(false) to apply.'); return; }
+  if(updated > 0) await db.ref().update(updates);
+  console.log('[migration] Done. totalEarned backfilled for all users with txlog history.');
+}
+if(typeof window !== 'undefined') window.runTotalEarnedMigration = runTotalEarnedMigration;
 
 /* ---------------- PROFILE ---------------- */
 function renderProfile(){
@@ -2272,6 +2337,7 @@ function claimMining(){
   db.ref().update({
     ['users/'+uid+'/crpt']: SERVER_INC(finalStored),
     ['users/'+uid+'/totalMining']: SERVER_INC(finalStored),
+    ['users/'+uid+'/totalEarned']: SERVER_INC(finalStored),  // lifetime earning (mining+task+daily) — leaderboard rank
     ['users/'+uid+'/minedToday']: SERVER_INC(finalStored),
     ['users/'+uid+'/miner/active']: false,
     ['users/'+uid+'/miner/startedAt']: null,
@@ -2415,7 +2481,7 @@ async function creditTask(t, id){
   const rec = taskRec(id) || {};
   const total = Number(rec.total != null ? rec.total : (rec.count||0)) + 1;
   const creditUp = { totalTask: SERVER_INC(1) };
-  if(reward>0) creditUp.crpt = SERVER_INC(reward);
+  if(reward>0){ creditUp.crpt = SERVER_INC(reward); creditUp.totalEarned = SERVER_INC(reward); } // lifetime earning — leaderboard rank
   if(rewardXp>0) creditUp.xp = SERVER_INC(rewardXp);
   if(t.category) creditUp['taskCatDone/'+t.category] = SERVER_INC(1);   // per-category counter (withdraw requirement)
   await db.ref('users/'+uid).update(creditUp);
